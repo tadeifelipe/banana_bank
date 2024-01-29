@@ -42,7 +42,7 @@ defmodule BananaBank.MixProject do
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
       {:pbkdf2_elixir, "~> 2.0"},
-      {:tesla, "~> 1.4"},
+      {:tesla, "~> 1.4"}
     ]
   end
 
