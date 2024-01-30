@@ -4,24 +4,47 @@ defmodule BananaBankWeb.UserControllerTest do
   alias BananaBank.Users
   alias Users.User
 
+  import Mox
+
+  setup do
+    params = %{
+      "name" => "Felipe",
+      "cep" => "17700000",
+      "email" => "felipe@email.com",
+      "password" => "12345"
+    }
+
+    body = %{
+      "bairro" => "",
+      "cep" => "17700-000",
+      "complemento" => "",
+      "ddd" => "18",
+      "gia" => "4947",
+      "ibge" => "3534609",
+      "localidade" => "Osvaldo Cruz",
+      "logradouro" => "",
+      "siafi" => "6793",
+      "uf" => "SP"
+    }
+
+    {:ok, user_params: params, body: body}
+  end
+
   describe "create/2" do
-    test "POST / create user successfully", %{conn: conn} do
-      params = %{
-        name: "Felipe",
-        cep: "17700-000",
-        email: "felipe@email.com",
-        password: "12345"
-      }
+    test "POST / create user successfully", %{conn: conn, user_params: user_params, body: body} do
+      expect(BananaBank.ViaCep.ClientMock, :call, fn "17700000" ->
+        {:ok, body}
+      end)
 
       response =
         conn
-        |> post(~p"/api/users", params)
+        |> post(~p"/api/users", user_params)
         |> json_response(201)
 
       assert %{
                "message" => "User created successfully!",
                "user" => %{
-                 "cep" => "17700-000",
+                 "cep" => "17700000",
                  "id" => _id,
                  "name" => "Felipe"
                }
@@ -30,11 +53,15 @@ defmodule BananaBankWeb.UserControllerTest do
 
     test "POST / should return erro when try create invalid user", %{conn: conn} do
       params = %{
-        name: "Felipe",
-        cep: "17700",
-        email: "felipeemail.com",
-        password: "12345"
+        "name" => "Felipe",
+        "cep" => "17700",
+        "email" => "felipeemail.com",
+        "password" => "12345"
       }
+
+      expect(BananaBank.ViaCep.ClientMock, :call, fn "17700" ->
+        {:ok, ""}
+      end)
 
       response =
         conn
@@ -53,22 +80,23 @@ defmodule BananaBankWeb.UserControllerTest do
   end
 
   describe "delete/1" do
-    test "DELETE / delete an user successfully", %{conn: conn} do
-      params = %{
-        name: "Felipe",
-        cep: "17700-000",
-        email: "felipe@email.com",
-        password: "12345"
-      }
+    test "DELETE / delete an user successfully", %{
+      conn: conn,
+      user_params: user_params,
+      body: body
+    } do
+      expect(BananaBank.ViaCep.ClientMock, :call, fn "17700000" ->
+        {:ok, body}
+      end)
 
-      {:ok, %User{id: id}} = Users.create(params)
+      {:ok, %User{id: id}} = Users.create(user_params)
 
       response =
         conn
         |> delete(~p"/api/users/#{id}")
         |> json_response(200)
 
-      assert %{"cep" => "17700-000", "id" => ^id, "name" => "Felipe"} = response
+      assert %{"cep" => "17700000", "id" => ^id, "name" => "Felipe"} = response
     end
   end
 end
